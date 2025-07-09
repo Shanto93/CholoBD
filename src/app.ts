@@ -1,12 +1,7 @@
-import express, {
-  Request,
-  Response,
-  Application,
-  type NextFunction,
-} from "express";
+import express, { Request, Response, Application } from "express";
 import cors from "cors";
 import { router } from "./app/routes";
-import { EnvConfig } from "./app/config/env";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 
 const app: Application = express();
 
@@ -22,13 +17,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-  res.status(400).json({
-    success: false,
-    message: `${error.message}`,
-    error,
-    stack: EnvConfig.NODE_ENV === "development" ? error.stack : null,
-  });
-});
+app.use(globalErrorHandler);
 
 export default app;
