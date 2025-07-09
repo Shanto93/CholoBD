@@ -4,8 +4,8 @@ import { StatusCodes } from "http-status-codes";
 
 const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, email } = req.body;
-    const user = await User.create({ name, email });
+    const userData = req.body;
+    const user = await User.create(userData);
     res.status(StatusCodes.CREATED).json({
       message: "User created Successfully",
       data: user,

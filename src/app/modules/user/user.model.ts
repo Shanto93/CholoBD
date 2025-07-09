@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { boolean } from "zod";
 import {
   IsActive,
   Role,
@@ -32,20 +31,20 @@ const userSchema = new mongoose.Schema<IUser>(
       unique: true,
     },
     password: {
-      type: true,
+      type: String,
     },
     phone: {
       type: String,
     },
     picture: { type: String },
     address: { type: String },
-    isDelete: { type: boolean, default: false },
+    isDelete: { type: Boolean, default: false },
     isActive: {
       type: String,
       enum: Object.values(IsActive),
       default: IsActive.ACTIVE,
     },
-    isVerified: { type: boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     role: {
       type: String,
       enum: Object.values(Role),
