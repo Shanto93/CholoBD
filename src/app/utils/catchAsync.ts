@@ -10,7 +10,6 @@ type TAsyncHandler = (
 export const catchAsync =
   (fn: TAsyncHandler) => (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch((error) => {
-    //   console.log(error);
       next(error);
     });
   };
