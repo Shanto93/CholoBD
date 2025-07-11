@@ -3,6 +3,8 @@ import type { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { StatusCodes } from "http-status-codes";
 import bcrypt from "bcryptjs";
+import { EnvConfig } from "../../config/env";
+import { generateToken } from "../../utils/jwt";
 
 const credentialLogin = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
@@ -21,8 +23,19 @@ const credentialLogin = async (payload: Partial<IUser>) => {
     throw new AppError(StatusCodes.BAD_REQUEST, "Password doesn't matched");
   }
 
+  const jwtPayload = {
+    userId: isUserAvailable._id,
+    email: isUserAvailable.email,
+    role: isUserAvailable.role,
+  };
+
+  const accessToken = generateToken(
+    jwtPayload,
+    EnvConfig.JWT_ACCESS_SECRET,
+    EnvConfig.JWT_ACCESS_EXPIRES
+  );
   return {
-    email,
+    accessToken,
   };
 };
 
