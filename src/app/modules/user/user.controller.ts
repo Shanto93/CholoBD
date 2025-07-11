@@ -4,10 +4,36 @@ import { StatusCodes } from "http-status-codes";
 import { UserServices } from "./user.services";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { User } from "./user.model";
+import AppError from "../../errorHelpers/AppError";
+import type { IAuthProvider } from "./user.interface";
+import bcrypt from "bcryptjs";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = await UserServices.createUser(req.body);
+    const { email, password, ...rest } = req.body;
+
+    const userAvailable = await User.findOne({ email });
+    if (userAvailable) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "User already exist in database"
+      );
+    }
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const authProvider: IAuthProvider = {
+      provider: "credential",
+      providerId: email,
+    };
+
+    const user = await UserServices.createUser({
+      email,
+      password: hashPassword,
+      auths: [authProvider],
+      ...rest,
+    });
     sendResponse(res, {
       statuscode: StatusCodes.CREATED,
       success: true,

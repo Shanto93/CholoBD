@@ -10,7 +10,7 @@ export enum Role {
 }
 
 export interface IAuthProvider {
-  provider: string;
+  provider: "google" | "credential"; 
   providerId: string;
 }
 
