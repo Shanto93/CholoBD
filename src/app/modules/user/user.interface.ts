@@ -32,6 +32,6 @@ export interface IUser {
   isVerified?: boolean;
   role: Role;
   auths: IAuthProvider[];
-  bookings: Types.ObjectId[];
-  guides: Types.ObjectId[];
+  bookings?: Types.ObjectId[];
+  guides?: Types.ObjectId[];
 }

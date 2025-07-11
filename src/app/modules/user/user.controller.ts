@@ -8,6 +8,7 @@ import { User } from "./user.model";
 import AppError from "../../errorHelpers/AppError";
 import type { IAuthProvider } from "./user.interface";
 import bcrypt from "bcryptjs";
+import { EnvConfig } from "../../config/env";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -21,7 +22,7 @@ const createUser = catchAsync(
       );
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashPassword = await bcrypt.hash(password, Number(EnvConfig.BCRYPT_SALT_ROUND));
 
     const authProvider: IAuthProvider = {
       provider: "credential",
