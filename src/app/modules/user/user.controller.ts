@@ -9,6 +9,8 @@ import AppError from "../../errorHelpers/AppError";
 import type { IAuthProvider } from "./user.interface";
 import bcrypt from "bcryptjs";
 import { EnvConfig } from "../../config/env";
+import { verifyToken } from "../../utils/jwt";
+import type { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -22,7 +24,10 @@ const createUser = catchAsync(
       );
     }
 
-    const hashPassword = await bcrypt.hash(password, Number(EnvConfig.BCRYPT_SALT_ROUND));
+    const hashPassword = await bcrypt.hash(
+      password,
+      Number(EnvConfig.BCRYPT_SALT_ROUND)
+    );
 
     const authProvider: IAuthProvider = {
       provider: "credential",
@@ -57,7 +62,32 @@ const getAllUsers = catchAsync(
   }
 );
 
+const updateUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const payload = req.body;
+    const token = req.headers.authorization;
+    const verifiedToken = verifyToken(
+      token as string,
+      EnvConfig.JWT_ACCESS_SECRET
+    ) as JwtPayload;
+
+    const updatedUser = await UserServices.updateUser(
+      userId,
+      payload,
+      verifiedToken
+    );
+    sendResponse(res, {
+      statuscode: StatusCodes.OK,
+      success: true,
+      message: "User updated Successfully",
+      data: updatedUser,
+    });
+  }
+);
+
 export const UserController = {
   createUser,
   getAllUsers,
+  updateUser
 };
