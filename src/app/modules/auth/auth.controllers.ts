@@ -41,8 +41,29 @@ const getNewAccessToken = catchAsync(
     });
   }
 );
+const logout = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    sendResponse(res, {
+      statuscode: StatusCodes.OK,
+      success: true,
+      message: "New access token generated successfully",
+      data: null,
+    });
+  }
+);
 
 export const AuthControllers = {
   credentialLogin,
   getNewAccessToken,
+  logout,
 };
