@@ -5,19 +5,13 @@ import { StatusCodes } from "http-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
 import { AuthService } from "./auth.services";
 import AppError from "../../errorHelpers/AppError";
+import { setAuthCookies } from "../../utils/setCookies";
 
 const credentialLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const loginInfo = await AuthService.credentialLogin(req.body);
 
-    res.cookie("accessToken", loginInfo.accessToken, {
-      httpOnly: true,
-      secure: false,
-    });
-    res.cookie("refreshToken", loginInfo.refreshToken, {
-      httpOnly: true,
-      secure: false,
-    });
+    setAuthCookies(res, loginInfo);
 
     sendResponse(res, {
       statuscode: StatusCodes.OK,
@@ -37,6 +31,7 @@ const getNewAccessToken = catchAsync(
     }
 
     const tokenInfo = await AuthService.getNewAccessToken(refreshToken);
+    setAuthCookies(res, tokenInfo);
 
     sendResponse(res, {
       statuscode: StatusCodes.OK,

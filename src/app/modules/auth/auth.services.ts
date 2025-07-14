@@ -1,12 +1,12 @@
 import AppError from "../../errorHelpers/AppError";
-import { IsActive, type IUser } from "../user/user.interface";
+import { type IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { StatusCodes } from "http-status-codes";
 import bcrypt from "bcryptjs";
-import { createUserTokens } from "../../utils/userTokens";
-import { generateToken, verifyToken } from "../../utils/jwt";
-import { EnvConfig } from "../../config/env";
-import type { JwtPayload } from "jsonwebtoken";
+import {
+  createNewAccessTokenWithRefreshToken,
+  createUserTokens,
+} from "../../utils/userTokens";
 
 const credentialLogin = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
@@ -44,45 +44,10 @@ const credentialLogin = async (payload: Partial<IUser>) => {
 };
 
 const getNewAccessToken = async (refreshToken: string) => {
-  const verifiedRefreshToken = verifyToken(
-    refreshToken,
-    EnvConfig.JWT_REFRESH_SECRET
-  ) as JwtPayload;
-
-  const isUserExist = await User.findOne({ email: verifiedRefreshToken.email });
-
-  if (!isUserExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "User does not exist");
-  }
-
-  if (
-    isUserExist.isActive === IsActive.BLOCKED ||
-    isUserExist.isActive === IsActive.INACTIVE
-  ) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      `User is ${isUserExist.isActive}`
-    );
-  }
-
-  if (isUserExist.isDelete) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "User is deleted");
-  }
-
-  const jwtPayload = {
-    userId: isUserExist._id,
-    email: isUserExist.email,
-    role: isUserExist.role,
-  };
-
-  const accessToken = generateToken(
-    jwtPayload,
-    EnvConfig.JWT_ACCESS_SECRET,
-    EnvConfig.JWT_ACCESS_EXPIRES
-  );
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
 
   return {
-    accessToken,
+    accessToken: newAccessToken,
   };
 };
 
