@@ -9,8 +9,6 @@ import AppError from "../../errorHelpers/AppError";
 import type { IAuthProvider } from "./user.interface";
 import bcrypt from "bcryptjs";
 import { EnvConfig } from "../../config/env";
-import { verifyToken } from "../../utils/jwt";
-import type { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
