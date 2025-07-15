@@ -7,7 +7,10 @@ import {
   createNewAccessTokenWithRefreshToken,
   createUserTokens,
 } from "../../utils/userTokens";
+import type { JwtPayload } from "jsonwebtoken";
+import { EnvConfig } from "../../config/env";
 
+// Login Credential
 const credentialLogin = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
 
@@ -43,15 +46,44 @@ const credentialLogin = async (payload: Partial<IUser>) => {
   };
 };
 
+// GEtting new Access token
 const getNewAccessToken = async (refreshToken: string) => {
-  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(
+    refreshToken
+  );
 
   return {
     accessToken: newAccessToken,
   };
 };
 
+// Password Reset
+const resetPassword = async (
+  oldPassword: string,
+  newPassword: string,
+  decodedToken: JwtPayload
+) => {
+  const user = await User.findById(decodedToken.userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+  const isOldPasswordMatch = await bcrypt.compare(
+    oldPassword,
+    user.password as string
+  );
+  if (!isOldPasswordMatch) {
+    throw new AppError(StatusCodes.FORBIDDEN, "Password doesn't match");
+  }
+
+  user.password = await bcrypt.hash(
+    newPassword,
+    Number(EnvConfig.BCRYPT_SALT_ROUND)
+  );
+  user.save();
+};
+
 export const AuthService = {
   credentialLogin,
   getNewAccessToken,
+  resetPassword,
 };
