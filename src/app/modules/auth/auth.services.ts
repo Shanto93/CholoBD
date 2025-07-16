@@ -64,13 +64,16 @@ const resetPassword = async (
   decodedToken: JwtPayload
 ) => {
   const user = await User.findById(decodedToken.userId);
+  
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
+
   const isOldPasswordMatch = await bcrypt.compare(
     oldPassword,
     user.password as string
   );
+
   if (!isOldPasswordMatch) {
     throw new AppError(StatusCodes.FORBIDDEN, "Password doesn't match");
   }
@@ -79,6 +82,7 @@ const resetPassword = async (
     newPassword,
     Number(EnvConfig.BCRYPT_SALT_ROUND)
   );
+
   user.save();
 };
 

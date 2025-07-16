@@ -3,13 +3,23 @@ import cors from "cors";
 import { router } from "./app/routes";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import notFound from "./app/middleware/notFound";
-import cookieParser from "cookie-parser"
-
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import expressSession from "express-session";
 
 const app: Application = express();
 
+app.use(
+  expressSession({
+    secret: "Your Secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors());
 
 app.use("/api/v1", router);
