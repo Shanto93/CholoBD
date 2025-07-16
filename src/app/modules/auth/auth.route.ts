@@ -1,7 +1,13 @@
-import { Router } from "express";
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import { AuthControllers } from "./auth.controllers";
 import { checkAuth } from "../../middleware/checkAuth";
 import { Role } from "../user/user.interface";
+import passport from "passport";
 
 const router = Router();
 
@@ -15,6 +21,23 @@ router.post(
   "/reset-password",
   checkAuth(...Object.values(Role)),
   AuthControllers.resetPassword
+);
+
+router.get(
+  "/google",
+  async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("google", { scope: ["profile", "email"] })(
+      req,
+      res,
+      next
+    );
+  }
+);
+
+// auth.route.ts
+router.get("/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  AuthControllers.googleCallbackController
 );
 
 export const AuthRoute = router;
