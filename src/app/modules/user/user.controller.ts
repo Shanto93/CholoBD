@@ -5,22 +5,22 @@ import { UserServices } from "./user.services";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { User } from "./user.model";
-import AppError from "../../errorHelpers/AppError";
 import type { IAuthProvider } from "./user.interface";
 import bcrypt from "bcryptjs";
 import { EnvConfig } from "../../config/env";
+import AppError from "../../errorHelpers/AppError";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password, ...rest } = req.body;
 
     const userAvailable = await User.findOne({ email });
-    if (userAvailable) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        "User already exist in database"
-      );
-    }
+    // if (userAvailable) {
+    //   throw new AppError(
+    //     StatusCodes.BAD_REQUEST,
+    //     "User already exist in database"
+    //   );
+    // }
 
     const hashPassword = await bcrypt.hash(
       password,
@@ -71,6 +71,10 @@ const updateUser = catchAsync(
     // ) as JwtPayload;
 
     const verifiedToken = req.user;
+
+    if (!verifiedToken) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, "User doesn't exists!!!");
+    }
 
     const updatedUser = await UserServices.updateUser(
       userId,
