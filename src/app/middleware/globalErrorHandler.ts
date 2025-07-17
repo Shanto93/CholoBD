@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import { EnvConfig } from "../config/env";
 import AppError from "../errorHelpers/AppError";
@@ -13,10 +14,26 @@ export const globalErrorHandler = (
   let statuscode = 500;
   let message = "Something went wrong";
 
+  const errorSources: any = [];
+
   if (error.code === 11000) {
     const duplicate = error.message.match(/"([^"]*)"/);
     statuscode = 400;
-    message = `${duplicate[1]} already exists!!`
+    message = `${duplicate[1]} already exists!!`;
+  } else if (error.name === "CastError") {
+    statuscode = 400;
+    message = "Invalid MongoDB ObjectID. Please provide valid ObjectID";
+  } else if (error.name === "ValidationError") {
+    statuscode = 400;
+    const errors = Object.values(error.errors);
+
+    errors.forEach((errorobject: any) =>
+      errorSources.push({
+        path: errorobject.path,
+        message: errorobject.message,
+      })
+    );
+    message = "Validation Error!!";
   } else if (error instanceof AppError) {
     message = error.message;
     statuscode = error.statuscode;
@@ -30,6 +47,7 @@ export const globalErrorHandler = (
     ...(EnvConfig.NODE_ENV === "development" && {
       stack: error.stack,
       error,
+      errorSources,
     }),
   });
 };
