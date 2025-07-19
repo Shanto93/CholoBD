@@ -1,48 +1,66 @@
-import { StatusCodes } from "http-status-codes";
-import AppError from "../../errorHelpers/AppError";
-import type { IDivision } from "./division.interface";
+import { IDivision } from "./division.interface";
 import { Division } from "./division.model";
 
 const createDivision = async (payload: IDivision) => {
-  const isDivisionExists = await Division.findOne({ name: payload.name });
-  if (isDivisionExists) {
-    throw new AppError(StatusCodes.CONFLICT, "Division already exists");
+  const existingDivision = await Division.findOne({ name: payload.name });
+  if (existingDivision) {
+    throw new Error("A division with this name already exists.");
   }
-  const disvision = await Division.create(payload);
-  return disvision;
+
+  const division = await Division.create(payload);
+
+  return division;
 };
 
 const getAllDivisions = async () => {
   const divisions = await Division.find({});
-  const totalDivisions = await Division.countDocuments({});
+  const totalDivisions = await Division.countDocuments();
   return {
     data: divisions,
-    meta: { total: totalDivisions },
+    meta: {
+      total: totalDivisions,
+    },
+  };
+};
+const getSingleDivision = async (slug: string) => {
+  const division = await Division.findOne({ slug });
+  return {
+    data: division,
   };
 };
 
 const updateDivision = async (id: string, payload: Partial<IDivision>) => {
-  const isDivisionExists = await Division.findById(id);
-  if (!isDivisionExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Division not found");
+  const existingDivision = await Division.findById(id);
+  if (!existingDivision) {
+    throw new Error("Division not found.");
   }
 
   const duplicateDivision = await Division.findOne({
-    _id: { $ne: id },
     name: payload.name,
+    _id: { $ne: id },
   });
+
   if (duplicateDivision) {
-    throw new AppError(StatusCodes.CONFLICT, "Division name already exists");
+    throw new Error("A division with this name already exists.");
   }
-  const updateDivision = await Division.findByIdAndUpdate(id, payload, {
+
+  const updatedDivision = await Division.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
   });
-  return updateDivision;
+
+  return updatedDivision;
 };
 
-export const DivisionServices = {
+const deleteDivision = async (id: string) => {
+  await Division.findByIdAndDelete(id);
+  return null;
+};
+
+export const DivisionService = {
   createDivision,
   getAllDivisions,
+  getSingleDivision,
   updateDivision,
+  deleteDivision,
 };
