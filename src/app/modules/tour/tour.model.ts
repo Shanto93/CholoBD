@@ -96,4 +96,36 @@ const tourSchema = new mongoose.Schema<ITour>(
   }
 );
 
+tourSchema.pre("save", async function (next) {
+  if (this.title) {
+    const baseSlug = this.title.toLowerCase().split(" ").join("-");
+    let slug = `${baseSlug}-tour`;
+
+    let count = 0;
+    while (await Tour.exists({ slug })) {
+      slug = `${baseSlug}-division-${++count}`;
+    }
+
+    this.slug = slug;
+  }
+  next();
+});
+
+tourSchema.pre("findOneAndUpdate", async function (next) {
+  const tour = this.getUpdate() as Partial<ITour>;
+  if (tour.title) {
+    const baseSlug = tour.title.toLowerCase().split(" ").join("-");
+    let slug = `${baseSlug}-tour`;
+
+    let count = 0;
+    while (await Tour.exists({ slug })) {
+      slug = `${baseSlug}-division-${++count}`;
+    }
+
+    tour.slug = slug;
+  }
+  this.setUpdate(tour);
+  next();
+});
+
 export const Tour = mongoose.model<ITour>("Tour", tourSchema);
