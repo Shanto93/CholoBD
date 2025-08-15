@@ -1,3 +1,4 @@
+import { tourSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
 
@@ -24,7 +25,18 @@ const createTour = async (payload: ITour) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTours = async (query: Record<string, string>) => {
-  const tours = await Tour.find({});
+  const filter = query;
+  const searchTerm = filter.searchTerm || "";
+  // console.log(filter);
+  delete filter["searchTerm"]
+
+  const searchQuery = {
+    $or: tourSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: "i" },
+    })),
+  };
+
+  const tours = await Tour.find(searchQuery).find(filter);
 
   return {
     data: tours,
