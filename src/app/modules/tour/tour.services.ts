@@ -1,3 +1,4 @@
+import { excludedFields } from "../../constants";
 import { tourSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
@@ -27,8 +28,16 @@ const createTour = async (payload: ITour) => {
 const getAllTours = async (query: Record<string, string>) => {
   const filter = query;
   const searchTerm = filter.searchTerm || "";
+  const sort = query.sort || "-createdAt";
+  const fieldFilter = query.fields.split(",").join(" ") || "";
   // console.log(filter);
-  delete filter["searchTerm"]
+  // delete filter["searchTerm"]
+  // delete filter["sort"]
+
+  for (const field of excludedFields) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete filter[field];
+  }
 
   const searchQuery = {
     $or: tourSearchableFields.map((field) => ({
@@ -36,7 +45,10 @@ const getAllTours = async (query: Record<string, string>) => {
     })),
   };
 
-  const tours = await Tour.find(searchQuery).find(filter);
+  const tours = await Tour.find(searchQuery)
+    .find(filter)
+    .sort(sort)
+    .select(fieldFilter);
 
   return {
     data: tours,
